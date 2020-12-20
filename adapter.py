@@ -82,7 +82,7 @@ def load_ply(ply_fpath: _PathLike) -> np.ndarray:
 
 # Setup the root directory
 data_dir=  root_dir+'train/'
-goal_dir= root_dir+'train_kitti/'
+goal_dir= root_dir+'training/'
 if not os.path.exists(goal_dir):
     os.mkdir(goal_dir)
     os.mkdir(goal_dir+'velodyne')
