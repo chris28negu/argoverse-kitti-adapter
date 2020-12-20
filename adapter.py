@@ -7,6 +7,9 @@
 # Author: Yiyang Zhou 
 # Email: yiyang.zhou@berkeley.edu
 
+# Modified for fixing 3D bounding boxes floating issue
+# Editor: Bo Wang (bo.wang01@sjsu.edu)
+
 print('\nLoading files...')
 
 from pyquaternion import Quaternion
@@ -51,11 +54,15 @@ argodataset
 
 ####CONFIGURATION#################################################
 # Root directory
-root_dir= '/media/msc/377445e5-f724-4791-861c-730d2b0bba3f/argoverse-tracking/'
+root_dir= '../../Datasets/argo/'
 
 # Maximum thresholding distance for labelled objects
 # (Object beyond this distance will not be labelled)
-max_d=50
+max_d=100
+
+# camera image size
+IMAGE_WIDTH = 1920
+IMAGE_HEIGHT = 1200
 
 ####################################################################
 _PathLike = Union[str, "os.PathLike[str]"]
@@ -66,7 +73,6 @@ def load_ply(ply_fpath: _PathLike) -> np.ndarray:
     Returns:
         arr: Array of shape (N, 3)
     """
-
     data = pyntcloud.PyntCloud.from_file(os.fspath(ply_fpath))
     x = np.array(data.points.x)[:, np.newaxis]
     y = np.array(data.points.y)[:, np.newaxis]
@@ -74,10 +80,9 @@ def load_ply(ply_fpath: _PathLike) -> np.ndarray:
 
     return np.concatenate((x, y, z), axis=1)
 
-# Setup the root directory 
-
-data_dir=  root_dir+'sample/'
-goal_dir= root_dir+'sample_kitti/'
+# Setup the root directory
+data_dir=  root_dir+'train/'
+goal_dir= root_dir+'train_kitti/'
 if not os.path.exists(goal_dir):
     os.mkdir(goal_dir)
     os.mkdir(goal_dir+'velodyne')
@@ -92,7 +97,6 @@ print('\nTotal number of logs:',len(argoverse_loader))
 argoverse_loader.print_all()
 print('\n')
 
-
 cams=['ring_front_center',
  'ring_front_left',
  'ring_front_right',
@@ -100,11 +104,6 @@ cams=['ring_front_center',
  'ring_rear_right',
  'ring_side_left',
  'ring_side_right']
-
-
-#cams=['ring_front_center']
-
-
 
 # count total number of files
 total_number=0
@@ -206,11 +205,8 @@ for log_id in argoverse_loader.log_list:
 
                 center_cam_frame= calibration_data.project_ego_to_cam(np.array([center]))
 
-                if 0<center_cam_frame[0][2]<max_d and 0<image_bbox[0]<1920 and 0<image_bbox[1]<1200 and 0<image_bbox[2]<1920 and  0<image_bbox[3]<1200:
-
-
-                    # the center coordinates in cam frame we need for KITTI 
-
+                # the center coordinates in cam frame we need for KITTI
+                if 0<center_cam_frame[0][2]<max_d and 0<image_bbox[0]<IMAGE_WIDTH and 0<image_bbox[1]<IMAGE_HEIGHT and 0<image_bbox[2]<IMAGE_WIDTH and  0<image_bbox[3]<IMAGE_HEIGHT:
 
                     # for the orientation, we choose point 1 and point 5 for application 
                     p1= corners_cam_frame[1]
@@ -225,7 +221,7 @@ for log_id in argoverse_loader.log_list:
                     angle = (angle + np.pi) % (2 * np.pi) - np.pi 
                     beta= math.atan2(center_cam_frame[0][2],center_cam_frame[0][0])
                     alpha= (angle-beta + np.pi) % (2 * np.pi) - np.pi 
-                    line=classes+ ' {} {} {} {} {} {} {} {} {} {} {} {} {} {} \n'.format(round(truncated,2),occulusion,round(alpha,2),round(image_bbox[0],2),round(image_bbox[1],2),round(image_bbox[2],2),round(image_bbox[3],2),round(height,2), round(width,2),round(length,2), round(center_cam_frame[0][0],2),round(center_cam_frame[0][1],2),round(center_cam_frame[0][2],2)-0.5*round(height,2),round(angle,2))                
+                    line=classes+ ' {} {} {} {} {} {} {} {} {} {} {} {} {} {} \n'.format(round(truncated,2),occulusion,round(alpha,2),round(image_bbox[0],2),round(image_bbox[1],2),round(image_bbox[2],2),round(image_bbox[3],2),round(height,2), round(width,2),round(length,2), round(center_cam_frame[0][0],2),round(center_cam_frame[0][1]+0.5*height,2),round(center_cam_frame[0][2],2),round(angle,2))
 
                     file.write(line)
             file.close()
