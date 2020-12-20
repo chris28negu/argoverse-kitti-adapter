@@ -332,7 +332,7 @@ def generate_and_save_label(label_object_list, file_idx, goal_dir, calibL, P1, R
         else:
             x1, y1, x2, y2 = bbox_2d
 
-            if ((x1 < 0 and x2 < 0) or (x1 > STEREO_SCALED_WIDTH - 1 and x2 > STEREO_SCALED_WIDTH - 1) or \
+            if ((x1 < 0 and x2 < 0) or (x1 > STEREO_SCALED_WIDTH - 1 and x2 > STEREO_SCALED_WIDTH - 1) or
                     (y1 < 0 and y2 < 0) or (y1 > STEREO_SCALED_HEIGHT - 1 and y2 > STEREO_SCALED_HEIGHT - 1)):
                 continue
             else:
